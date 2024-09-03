@@ -81,7 +81,7 @@ int Temperatura = 0;
 int LeituraTemp=0;
 int SensorHumidade=0;
 int PercentualHumidadeTerra; // moisture value in percentage
-int SensorHumidadeAr;
+//int SensorHumidadeAr;
 
 //-----------------------------------------
  
