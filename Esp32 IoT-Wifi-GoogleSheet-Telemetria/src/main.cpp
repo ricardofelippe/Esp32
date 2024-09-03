@@ -78,7 +78,7 @@ HTTPSRedirect* client = nullptr;
 int ID = 0;
 int SensorHumidadeTerra = 0;
 int Temperatura = 0;
-int LeituraTemp=0;
+//int LeituraTemp=0;
 int SensorHumidade=0;
 int PercentualHumidadeTerra; // moisture value in percentage
 //int SensorHumidadeAr;
