@@ -3,65 +3,108 @@
 
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
+#include <DHT.h>
+#include <DHT_U.h>
 
-void refresh_readings();  // Declare in the header so that the compiler knows about it before it is called in loop()
 
-#ifndef LED_BUILTIN
-#define LED_BUILTIN 2   // This is valid for my devkit
-#endif
 
-#define SEALEVELPRESSURE_HPA (1013.25)
-Adafruit_BME280 bme; // I2C
+#define SensorPin_movimento    26  //PINO D25 NO ESP32
+int Temperatura = 0;
+int LeituraTemp=0;
+int SensorHumidade=0;
+int movimento=0;
+
+//DHT Configuration------------------------------
+
+// Uncomment the type of sensor in use:
+#define DHTTYPE    DHT11     // DHT 11
+//#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+
+// See guide for details on sensor wiring and usage:
+//   https://learn.adafruit.com/dht/overview
+
+#define DHTPIN    25  //PINO D5 NO ESP32
+
+DHT_Unified dht(DHTPIN, DHTTYPE);
+
+
+
 
 void setup() {
-  pinMode(LED_BUILTIN,OUTPUT);
-  Serial.begin(9600);
-  bool status;
-
-  // (you can also pass in a Wire library object like &Wire2)
-  status = bme.begin(0x76);
-  if (!status) {
-    Serial.println("Could not find a valid BME280 sensor, check wiring!");
-    while (1);
-  }
+  Serial.begin(115200);
+  //pinMode(LED_BUILTIN,OUTPUT);
+  pinMode(SensorPin_movimento, INPUT);
+  
+//DHT------------------------------
+ dht.begin();
+ Serial.println(F("DHTxx Unified Sensor Example"));
+ //Print temperature sensor details.
+ sensor_t sensor;
+ dht.temperature().getSensor(&sensor);
+ Serial.println(F("------------------------------------"));
+ Serial.println(F("Temperature Sensor"));
+ Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+ Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+ Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+ Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("°C"));
+ Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("°C"));
+ Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
+ Serial.println(F("------------------------------------"));
+ //Print humidity sensor details.
+ dht.humidity().getSensor(&sensor);
+ Serial.println(F("Humidity Sensor"));
+ Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+ Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+ Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+ Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("%"));
+ Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("%"));
+ Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
+ Serial.println(F("------------------------------------"));
+  
+  
 }
 
 void loop() {
-  refresh_readings();
-  delay(2000);
+  // PIR Movimento
+  byte state = digitalRead(SensorPin_movimento);
+  //digitalWrite(indicator,state);
+  if(state == 1)
+    {
+    Serial.println("Somebody is in this area!");
+    movimento=1;}
+  else if(state == 0){
+    Serial.println("No one!");
+    movimento=0;
+  }
+
+  // DHT11
+// Get temperature event and print its value.
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+  }
+  else {
+    Serial.print(F("Temperature: "));
+    Temperatura=event.temperature;
+    Serial.print(event.temperature);
+    Serial.println(F("°C"));
+  }
+// Get humidity event and print its value.
+  dht.humidity().getEvent(&event);
+  if (isnan(event.relative_humidity)) {
+    Serial.println(F("Error reading humidity!"));
+  }
+  else {
+    Serial.print(F("Humidity: "));
+    SensorHumidade=event.relative_humidity;
+    
+    Serial.print(event.relative_humidity);
+    Serial.println(F("%"));
+  }
+
+  delay(2000); // Delay between readings.
+
 }
 
-void refresh_readings() {
-  float f_temperature;
-  float f_humidity;
-  float f_pressure;
-  float f_altitude;
-
-  digitalWrite(LED_BUILTIN, HIGH);
-
-  f_temperature = bme.readTemperature();
-  f_humidity = bme.readHumidity();
-  f_pressure = bme.readPressure() / 100.0F;
-  f_altitude = bme.readAltitude(SEALEVELPRESSURE_HPA);
-
-  // Temperature
-
-  Serial.print(f_temperature);
-  Serial.println(" °C");
-
-  // Humidity
-  Serial.print(f_humidity);
-  Serial.println(" %");
-
-  // Pressure
-  Serial.print(f_pressure);
-  Serial.println(" hPa");
-
-  // Appx altitude
-  Serial.print(f_altitude);
-  Serial.println(" m");   
-  
-  digitalWrite(LED_BUILTIN, LOW);
-  Serial.println("------------");   
-}
