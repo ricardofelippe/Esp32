@@ -2,17 +2,18 @@
 // The full sketch is in this file.
 
 #include <Arduino.h>
+#include "settings.h"
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
 
 
 
-#define SensorPin_movimento    26  //PINO D25 NO ESP32
+//#define SensorPin_movimento    26  //PINO D25 NO ESP32
 int Temperatura = 0;
 int LeituraTemp=0;
 int SensorHumidade=0;
-int movimento=0;
+//int movimento=0;
 
 //DHT Configuration------------------------------
 
@@ -67,16 +68,7 @@ void setup() {
 
 void loop() {
   // PIR Movimento
-  byte state = digitalRead(SensorPin_movimento);
-  //digitalWrite(indicator,state);
-  if(state == 1)
-    {
-    Serial.println("Somebody is in this area!");
-    movimento=1;}
-  else if(state == 0){
-    Serial.println("No one!");
-    movimento=0;
-  }
+  sensor_PIR();
 
   // DHT11
 // Get temperature event and print its value.
